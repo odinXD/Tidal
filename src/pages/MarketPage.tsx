@@ -4,7 +4,7 @@ import styles from './MarketPage.module.css';
 export default function MarketPage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         <Panel defaultSize={20} minSize={15} className={styles.panel}>
           <div className={styles.panelHeader}>시장 펄스 (Market Pulse)</div>
           <div className={styles.panelContent}>

@@ -17,7 +17,7 @@ export default function StockDetailPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         <Panel defaultSize={20} minSize={15} className={styles.panel}>
           <div className={styles.panelHeader}>종목 정보 ({code})</div>
           <div className={styles.panelContent}>

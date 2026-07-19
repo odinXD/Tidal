@@ -4,7 +4,7 @@ import styles from './MarketPage.module.css'; // 공유 스타일 사용
 export default function MacroPage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         {/* 주요 매크로 지표 목록 (좌측) */}
         <Panel defaultSize={25} minSize={20} className={styles.panel}>
           <div className={styles.panelHeader}>매크로 지표 모니터</div>

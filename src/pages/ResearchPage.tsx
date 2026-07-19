@@ -5,7 +5,7 @@ import styles from './MarketPage.module.css';
 export default function ResearchPage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         {/* 사이드바 - 분석 모드 선택 및 프롬프트 제안 */}
         <Panel defaultSize={25} minSize={20} className={styles.panel}>
           <div className={styles.panelHeader}>리서치 모드</div>

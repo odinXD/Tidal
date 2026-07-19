@@ -4,7 +4,7 @@ import styles from './MarketPage.module.css';
 export default function SettingsPage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         <Panel className={styles.panel}>
           <div className={styles.panelHeader}>설정 및 API 키 관리</div>
           <div className={styles.panelContent} style={{ maxWidth: 800, margin: '0 auto', width: '100%' }}>

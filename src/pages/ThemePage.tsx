@@ -4,7 +4,7 @@ import styles from './MarketPage.module.css';
 export default function ThemePage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         <Panel defaultSize={30} minSize={20} className={styles.panel}>
           <div className={styles.panelHeader}>테마 및 업종 리스트</div>
           <div className={styles.panelContent}>

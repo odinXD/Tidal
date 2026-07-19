@@ -4,7 +4,7 @@ import styles from './MarketPage.module.css';
 export default function DisclosurePage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         <Panel defaultSize={40} minSize={30} className={styles.panel}>
           <div className={styles.panelHeader}>DART 공시 검색</div>
           <div className={styles.panelContent}>

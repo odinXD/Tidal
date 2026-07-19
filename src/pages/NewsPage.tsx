@@ -4,7 +4,7 @@ import styles from './MarketPage.module.css';
 export default function NewsPage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         <Panel defaultSize={40} minSize={30} className={styles.panel}>
           <div className={styles.panelHeader}>실시간 뉴스 피드</div>
           <div className={styles.panelContent}>

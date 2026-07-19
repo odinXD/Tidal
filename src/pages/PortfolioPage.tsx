@@ -4,7 +4,7 @@ import styles from './MarketPage.module.css';
 export default function PortfolioPage() {
   return (
     <div className={styles.pageContainer}>
-      <PanelGroup direction="horizontal">
+      <PanelGroup orientation="horizontal">
         <Panel defaultSize={20} minSize={15} className={styles.panel}>
           <div className={styles.panelHeader}>나의 포트폴리오</div>
           <div className={styles.panelContent}>
