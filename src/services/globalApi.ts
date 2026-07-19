@@ -23,6 +23,20 @@ export const globalApi = {
     }
   },
 
+  getMacroChart: async (symbol: string): Promise<any> => {
+    try {
+      const isProd = import.meta.env.PROD;
+      const PROXY_URL = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+      const API_BASE = isProd ? '/api' : `${PROXY_URL}/api`;
+      
+      const response = await axios.get(`${API_BASE}/macro?symbol=${encodeURIComponent(symbol)}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch macro chart for ${symbol}`, error);
+      throw error;
+    }
+  },
+
   // 2. 환율 차트 히스토리
   getRatesHistory: async (startDate: string, endDate: string) => {
     try {

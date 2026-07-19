@@ -10,7 +10,7 @@ export interface StockBasicInfo {
   closePrice: string;
   compareToPreviousClosePrice: string;
   fluctuationsRatio: string;
-  marketValue: string;
+  marketValue?: string;
   itemCode: string;
 }
 
@@ -72,6 +72,28 @@ export const naverFinanceApi = {
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch research reports`, error);
+      throw error;
+    }
+  },
+
+  // 5. 실시간 특징주 (시가총액 상위)
+  getTopStocks: async (): Promise<StockBasicInfo[]> => {
+    try {
+      const response = await axios.get(`${API_BASE}/top`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch top stocks`, error);
+      throw error;
+    }
+  },
+
+  // 6. 메인 뉴스 가져오기
+  getMainNews: async (): Promise<any[]> => {
+    try {
+      const response = await axios.get(`${API_BASE}/news`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch main news`, error);
       throw error;
     }
   }
