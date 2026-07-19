@@ -4,6 +4,7 @@ import stockHandler from './api/naver/stock/[code].ts';
 import exchangeHandler from './api/exchange.ts';
 import topHandler from './api/naver/top.ts';
 import newsHandler from './api/naver/news.ts';
+import stockNewsHandler from './api/naver/stock-news.ts';
 import macroHandler from './api/macro.ts';
 
 function createMockReqRes(query: any) {
@@ -61,8 +62,8 @@ async function runTests() {
   ({ req, res, promise } = createMockReqRes({}));
   await topHandler(req as any, res as any);
   result = await promise;
-  console.log(`Status: ${result.status}, Top Stocks Length: ${result.data?.length}`);
-  if (result.status !== 200 || !Array.isArray(result.data) || result.data.length === 0) {
+  console.log(`Status: ${result.status}, Top Stocks Keys: ${Object.keys(result.data || {})}`);
+  if (result.status !== 200 || !result.data?.marketCap || !Array.isArray(result.data.marketCap)) {
     throw new Error("Top Stocks API failed");
   }
 
@@ -82,6 +83,15 @@ async function runTests() {
   console.log(`Status: ${result.status}, News Length: ${result.data?.length}`);
   if (result.status !== 200 || !Array.isArray(result.data) || result.data.length === 0) {
     throw new Error("News API failed");
+  }
+
+  console.log("\n=== Testing API: Stock News (005930) ===");
+  ({ req, res, promise } = createMockReqRes({ code: '005930' }));
+  await stockNewsHandler(req as any, res as any);
+  result = await promise;
+  console.log(`Status: ${result.status}, Stock News Length: ${result.data?.length}`);
+  if (result.status !== 200 || !Array.isArray(result.data) || result.data.length === 0) {
+    throw new Error("Stock News API failed");
   }
 
   console.log("\n✅ ALL VERCEL APIS VERIFIED AND WORKING PROPERLY!");

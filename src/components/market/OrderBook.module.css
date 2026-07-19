@@ -1,0 +1,80 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: bold;
+}
+
+.book {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  height: 24px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+
+.row:hover {
+  background-color: var(--bg-panel-hover);
+}
+
+.volCol {
+  flex: 1;
+  text-align: right;
+  padding: 0 8px;
+  color: var(--text-secondary);
+}
+
+.volCol:last-child {
+  text-align: left;
+}
+
+.priceCol {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+}
+
+.askPrice {
+  color: var(--color-down); /* 매도는 파란색 */
+  background: var(--color-down-bg);
+}
+
+.bidPrice {
+  color: var(--color-up); /* 매수는 빨간색 */
+  background: var(--color-up-bg);
+}
+
+.barAsk {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  right: 0;
+  background: rgba(59, 130, 246, 0.15);
+  border-radius: 2px 0 0 2px;
+}
+
+.barBid {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  background: rgba(239, 68, 68, 0.15);
+  border-radius: 0 2px 2px 0;
+}

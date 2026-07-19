@@ -6,6 +6,7 @@ const PROXY_URL = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
 const API_BASE = isProd ? '/api/naver' : `${PROXY_URL}/api/naver`;
 
 export interface StockBasicInfo {
+  code?: string;
   stockName: string;
   closePrice: string;
   compareToPreviousClosePrice: string;
@@ -76,8 +77,8 @@ export const naverFinanceApi = {
     }
   },
 
-  // 5. 실시간 특징주 (시가총액 상위)
-  getTopStocks: async (): Promise<StockBasicInfo[]> => {
+  // 5. 실시간 특징주 (시가총액 상위, 상승률 상위, 하락률 상위)
+  getTopStocks: async (): Promise<{ marketCap: StockBasicInfo[], gainers: StockBasicInfo[], losers: StockBasicInfo[] }> => {
     try {
       const response = await axios.get(`${API_BASE}/top`);
       return response.data;
@@ -94,6 +95,17 @@ export const naverFinanceApi = {
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch main news`, error);
+      throw error;
+    }
+  },
+
+  // 7. 특정 종목 뉴스 가져오기
+  getStockNews: async (code: string): Promise<any[]> => {
+    try {
+      const response = await axios.get(`${API_BASE}/stock-news?code=${code}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch stock news for ${code}`, error);
       throw error;
     }
   }

@@ -2,6 +2,7 @@ import { Search, Settings, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMarketStore } from '../../store/useMarketStore';
+import { usePriceTick } from '../../hooks/usePriceTick';
 import { searchStocks } from '../../utils/stockDictionary';
 import type { StockItem } from '../../utils/stockDictionary';
 import styles from './TopBar.module.css';
@@ -10,6 +11,10 @@ export default function TopBar() {
   const navigate = useNavigate();
   const { indices, exchangeRates } = useMarketStore();
   
+  const kospiTick = usePriceTick(indices.kospi?.closePrice);
+  const kosdaqTick = usePriceTick(indices.kosdaq?.closePrice);
+  const usdTick = usePriceTick(exchangeRates.usdKrw?.toString());
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<StockItem[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -112,17 +117,17 @@ export default function TopBar() {
       <div className={styles.indexStrip}>
         <div className={styles.indexItem}>
           <span className={styles.indexName}>KOSPI</span>
-          <span className={styles.indexValue}>{formatIndex(indices.kospi?.closePrice)}</span>
+          <span className={`${styles.indexValue} ${kospiTick}`}>{formatIndex(indices.kospi?.closePrice)}</span>
           <span className={`${styles.indexChange} ${getChangeClass(indices.kospi?.fluctuationsRatio)}`}>{formatChange(indices.kospi?.fluctuationsRatio)}</span>
         </div>
         <div className={styles.indexItem}>
           <span className={styles.indexName}>KOSDAQ</span>
-          <span className={styles.indexValue}>{formatIndex(indices.kosdaq?.closePrice)}</span>
+          <span className={`${styles.indexValue} ${kosdaqTick}`}>{formatIndex(indices.kosdaq?.closePrice)}</span>
           <span className={`${styles.indexChange} ${getChangeClass(indices.kosdaq?.fluctuationsRatio)}`}>{formatChange(indices.kosdaq?.fluctuationsRatio)}</span>
         </div>
         <div className={styles.indexItem}>
           <span className={styles.indexName}>USD/KRW</span>
-          <span className={styles.indexValue}>{exchangeRates.usdKrw ? exchangeRates.usdKrw.toLocaleString() : '1,380.50'}</span>
+          <span className={`${styles.indexValue} ${usdTick}`}>{exchangeRates.usdKrw ? exchangeRates.usdKrw.toLocaleString() : '1,380.50'}</span>
           <span className={`${styles.indexChange} text-up`}>+2.0</span>
         </div>
       </div>

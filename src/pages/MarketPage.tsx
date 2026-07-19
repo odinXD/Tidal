@@ -11,111 +11,148 @@ export default function MarketPage() {
   const navigate = useNavigate();
   const { indices } = useMarketStore();
   const [kospiChart, setKospiChart] = useState<ChartData[]>([]);
-  const [topStocks, setTopStocks] = useState<StockBasicInfo[]>([]);
+  const [kosdaqChart, setKosdaqChart] = useState<ChartData[]>([]);
+  const [topStocks, setTopStocks] = useState<{marketCap: StockBasicInfo[], gainers: StockBasicInfo[], losers: StockBasicInfo[]}>({
+    marketCap: [], gainers: [], losers: []
+  });
+  const [activeTab, setActiveTab] = useState<'marketCap'|'gainers'|'losers'>('marketCap');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMarketData = async () => {
+    const fetchData = async () => {
       try {
-        const [chartData, topData] = await Promise.all([
+        const [kospi, kosdaq, top] = await Promise.all([
           naverFinanceApi.getChartData('KOSPI', 'day', '', ''),
+          naverFinanceApi.getChartData('KOSDAQ', 'day', '', ''),
           naverFinanceApi.getTopStocks()
         ]);
-        setKospiChart(chartData);
-        setTopStocks(topData);
-      } catch (e) {
-        console.error('Failed to fetch market data', e);
+        setKospiChart(kospi);
+        setKosdaqChart(kosdaq);
+        setTopStocks(top);
+      } catch (error) {
+        console.error('Failed to fetch market data', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchMarketData();
+    fetchData();
   }, []);
 
-  const formatPrice = (val?: string | null) => val ? parseFloat(val).toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00';
+  const getChangeClass = (val?: string) => {
+    if (!val) return '';
+    const num = parseFloat(val);
+    if (num > 0) return 'text-up';
+    if (num < 0) return 'text-down';
+    return '';
+  };
+
+  const renderStockList = (list: StockBasicInfo[]) => {
+    return list.map((stock, i) => {
+      const isUp = parseFloat(stock.compareToPreviousClosePrice || '0') > 0;
+      return (
+        <div key={i} className={styles.stockItem} onClick={() => navigate(`/stock/${stock.code}`)}>
+          <div className={styles.stockInfo}>
+            <span className={styles.stockRank}>{i + 1}</span>
+            <span className={styles.stockName}>{stock.stockName}</span>
+          </div>
+          <div className={styles.stockPriceInfo}>
+            <span style={{ fontWeight: 600 }}>{stock.closePrice}</span>
+            <span className={`${styles.stockChange} ${getChangeClass(stock.fluctuationsRatio)}`}>
+              {isUp ? '+' : ''}{stock.fluctuationsRatio}%
+            </span>
+          </div>
+        </div>
+      );
+    });
+  };
 
   return (
     <div className={styles.pageContainer}>
       <PanelGroup orientation="horizontal">
-        <Panel defaultSize={20} minSize={15} className={styles.panel}>
-          <div className={styles.panelHeader}>시장 펄스 (Market Pulse)</div>
-          <div className={styles.panelContent}>
-            <div style={{ padding: '0 12px' }}>
-              <h3 style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 8 }}>오늘의 시장 요약</h3>
-              <div style={{ background: 'var(--bg-base)', padding: 12, borderRadius: 6, marginBottom: 16 }}>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>코스피 지수</div>
-                <div style={{ fontSize: 20, fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                  {formatPrice(indices.kospi?.closePrice)}
+        {/* 중앙 차트 영역 (코스피 / 코스닥 분할) */}
+        <Panel defaultSize={70} minSize={50} className={styles.panel}>
+          <PanelGroup orientation="vertical">
+            <Panel defaultSize={50} minSize={30}>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div className={styles.panelHeader} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>KOSPI 지수</span>
+                  <span className={getChangeClass(indices.kospi?.fluctuationsRatio)}>
+                    {indices.kospi?.closePrice} ({indices.kospi?.fluctuationsRatio}%)
+                  </span>
                 </div>
-              </div>
-              <div style={{ background: 'var(--bg-base)', padding: 12, borderRadius: 6 }}>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>코스닥 지수</div>
-                <div style={{ fontSize: 20, fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                  {formatPrice(indices.kosdaq?.closePrice)}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Panel>
-
-        <PanelResizeHandle className={styles.resizeHandle} />
-
-        <Panel defaultSize={55} minSize={30} className={styles.panel}>
-          <div className={styles.panelHeader}>KOSPI 일봉 차트</div>
-          <div className={styles.panelContent} style={{ padding: 0 }}>
-            <div style={{ height: '100%', position: 'relative' }}>
-              {loading ? (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>
-                  차트 불러오는 중...
-                </div>
-              ) : kospiChart.length > 0 ? (
-                <CandleChart data={kospiChart} />
-              ) : (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--color-danger)' }}>
-                  데이터가 없습니다
-                </div>
-              )}
-            </div>
-          </div>
-        </Panel>
-
-        <PanelResizeHandle className={styles.resizeHandle} />
-
-        <Panel defaultSize={25} minSize={20} className={styles.panel}>
-          <div className={styles.panelHeader}>시가총액 상위 특징주</div>
-          <div className={styles.panelContent} style={{ overflowY: 'auto' }}>
-            <div style={{ padding: '0 12px' }}>
-              {loading ? (
-                <div style={{ color: 'var(--text-muted)', padding: '12px 0' }}>불러오는 중...</div>
-              ) : topStocks.length > 0 ? (
-                topStocks.map((stock) => {
-                  const changeNum = parseFloat(stock.fluctuationsRatio);
-                  const isUp = changeNum > 0;
-                  const isDown = changeNum < 0;
-                  const changeColor = isUp ? 'var(--color-danger)' : isDown ? 'var(--color-primary)' : 'var(--text-primary)';
-                  const changeSign = isUp ? '+' : '';
-                  
-                  return (
-                    <div 
-                      key={stock.itemCode} 
-                      style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--bg-base)', cursor: 'pointer' }}
-                      onClick={() => navigate(`/stock/${stock.itemCode}`)}
-                    >
-                      <div>
-                        <div style={{ fontSize: 14, color: 'var(--text-primary)' }}>{stock.stockName}</div>
-                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{stock.itemCode}</div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: 14, fontWeight: 'bold' }}>{parseFloat(stock.closePrice.replace(/,/g, '')).toLocaleString()}</div>
-                        <div style={{ fontSize: 12, color: changeColor }}>{changeSign}{stock.fluctuationsRatio}%</div>
-                      </div>
+                <div className={styles.panelContent} style={{ flex: 1, padding: 0, position: 'relative' }}>
+                  {loading ? (
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>로딩중...</div>
+                  ) : kospiChart.length > 0 && (
+                    <div style={{ position: 'absolute', inset: 0 }}>
+                      <CandleChart data={kospiChart} />
                     </div>
-                  );
-                })
-              ) : (
-                <div style={{ color: 'var(--text-muted)', padding: '12px 0' }}>데이터가 없습니다.</div>
-              )}
-            </div>
+                  )}
+                </div>
+              </div>
+            </Panel>
+            
+            <PanelResizeHandle className={styles.resizeHandle} />
+            
+            <Panel defaultSize={50} minSize={30}>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div className={styles.panelHeader} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>KOSDAQ 지수</span>
+                  <span className={getChangeClass(indices.kosdaq?.fluctuationsRatio)}>
+                    {indices.kosdaq?.closePrice} ({indices.kosdaq?.fluctuationsRatio}%)
+                  </span>
+                </div>
+                <div className={styles.panelContent} style={{ flex: 1, padding: 0, position: 'relative' }}>
+                  {loading ? (
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>로딩중...</div>
+                  ) : kosdaqChart.length > 0 && (
+                    <div style={{ position: 'absolute', inset: 0 }}>
+                      <CandleChart data={kosdaqChart} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Panel>
+          </PanelGroup>
+        </Panel>
+
+        <PanelResizeHandle className={styles.resizeHandle} />
+
+        {/* 우측 특징주 패널 */}
+        <Panel defaultSize={30} minSize={25} className={styles.panel}>
+          <div className={styles.panelHeader}>시장 주도주</div>
+          
+          <div style={{ display: 'flex', padding: '0 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-panel)' }}>
+            <button 
+              style={{ flex: 1, padding: '12px 0', borderBottom: activeTab === 'marketCap' ? '2px solid var(--border-highlight)' : '2px solid transparent', color: activeTab === 'marketCap' ? 'var(--text-primary)' : 'var(--text-muted)' }}
+              onClick={() => setActiveTab('marketCap')}
+            >
+              시가총액
+            </button>
+            <button 
+              style={{ flex: 1, padding: '12px 0', borderBottom: activeTab === 'gainers' ? '2px solid var(--border-highlight)' : '2px solid transparent', color: activeTab === 'gainers' ? 'var(--text-primary)' : 'var(--text-muted)' }}
+              onClick={() => setActiveTab('gainers')}
+            >
+              급등주
+            </button>
+            <button 
+              style={{ flex: 1, padding: '12px 0', borderBottom: activeTab === 'losers' ? '2px solid var(--border-highlight)' : '2px solid transparent', color: activeTab === 'losers' ? 'var(--text-primary)' : 'var(--text-muted)' }}
+              onClick={() => setActiveTab('losers')}
+            >
+              급락주
+            </button>
+          </div>
+          
+          <div className={styles.panelContent} style={{ padding: '0 12px' }}>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>데이터 로딩중...</div>
+            ) : (
+              <div className={styles.stockList}>
+                {activeTab === 'marketCap' && renderStockList(topStocks.marketCap)}
+                {activeTab === 'gainers' && renderStockList(topStocks.gainers)}
+                {activeTab === 'losers' && renderStockList(topStocks.losers)}
+              </div>
+            )}
           </div>
         </Panel>
       </PanelGroup>
