@@ -1,0 +1,41 @@
+.statusBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 28px;
+  background-color: var(--bg-panel);
+  border-top: 1px solid var(--border-color);
+  padding: 0 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.left, .right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconConnected {
+  color: #10b981; /* emerald-500 */
+}
+
+.iconWarning {
+  color: #f59e0b; /* amber-500 */
+}
+
+.iconError {
+  color: #ef4444; /* red-500 */
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text-secondary);
+}

@@ -1,0 +1,39 @@
+.tabBar {
+  display: flex;
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 16px;
+  gap: 4px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-panel-hover);
+}
+
+.tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--color-highlight, var(--color-accent));
+  background-color: var(--bg-panel-hover);
+}
+
+.tab svg {
+  opacity: 0.7;
+}
+
+.tab.active svg {
+  opacity: 1;
+  color: var(--color-accent);
+}
