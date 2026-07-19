@@ -1,19 +1,57 @@
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import CandleChart from '../components/charts/CandleChart';
-import styles from './MarketPage.module.css'; // 같은 패널 스타일 공유
+import { naverFinanceApi } from '../services/naverFinance';
+import type { StockBasicInfo, ChartData } from '../services/naverFinance';
+import { STOCK_DICTIONARY } from '../utils/stockDictionary';
+import styles from './MarketPage.module.css';
 
 export default function StockDetailPage() {
   const { code } = useParams<{ code: string }>();
+  const [basicInfo, setBasicInfo] = useState<StockBasicInfo | null>(null);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 더미 차트 데이터 (실제로는 API에서 불러와야 함)
-  const dummyChartData = [
-    { date: '20240101', open: 70000, high: 71000, low: 69000, close: 70500, volume: 1000000 },
-    { date: '20240102', open: 70500, high: 72000, low: 70000, close: 71500, volume: 1200000 },
-    { date: '20240103', open: 71000, high: 71500, low: 70500, close: 71000, volume: 800000 },
-    { date: '20240104', open: 71000, high: 73000, low: 70500, close: 72500, volume: 1500000 },
-    { date: '20240105', open: 72500, high: 73500, low: 72000, close: 72000, volume: 1100000 },
-  ];
+  useEffect(() => {
+    if (!code) return;
+    
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [basic, chart] = await Promise.all([
+          naverFinanceApi.getStockBasic(code),
+          naverFinanceApi.getChartData(code, 'day', '', '')
+        ]);
+        setBasicInfo(basic);
+        setChartData(chart);
+      } catch (err) {
+        console.error(err);
+        setError('데이터를 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [code]);
+
+  const stockName = basicInfo?.stockName || STOCK_DICTIONARY.find(s => s.code === code)?.name || code;
+
+  const formatPrice = (val?: string) => {
+    if (!val) return '0';
+    return parseInt(val.replace(/,/g, '')).toLocaleString();
+  };
+
+  const getChangeClass = (val?: string) => {
+    if (!val) return '';
+    const num = parseFloat(val);
+    if (num > 0) return 'text-up';
+    if (num < 0) return 'text-down';
+    return '';
+  };
 
   return (
     <div className={styles.pageContainer}>
@@ -21,26 +59,28 @@ export default function StockDetailPage() {
         <Panel defaultSize={20} minSize={15} className={styles.panel}>
           <div className={styles.panelHeader}>종목 정보 ({code})</div>
           <div className={styles.panelContent}>
-            <div style={{ marginBottom: 16 }}>
-              <h2 style={{ color: 'var(--color-accent)' }}>삼성전자</h2>
-              <div style={{ fontSize: 24, fontWeight: 'bold' }}>72,000</div>
-              <div className="text-up">+2.1%</div>
-            </div>
-            
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span>시가총액</span>
-                <span style={{ color: 'var(--text-primary)' }}>430조</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span>PER</span>
-                <span style={{ color: 'var(--text-primary)' }}>15.2</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span>PBR</span>
-                <span style={{ color: 'var(--text-primary)' }}>1.3</span>
-              </div>
-            </div>
+            {loading ? (
+              <div style={{ color: 'var(--text-muted)' }}>로딩중...</div>
+            ) : error ? (
+              <div style={{ color: 'var(--color-danger)' }}>{error}</div>
+            ) : (
+              <>
+                <div style={{ marginBottom: 16 }}>
+                  <h2 style={{ color: 'var(--color-accent)', margin: '0 0 8px 0' }}>{stockName}</h2>
+                  <div style={{ fontSize: 24, fontWeight: 'bold' }}>{formatPrice(basicInfo?.closePrice)}</div>
+                  <div className={getChangeClass(basicInfo?.fluctuationsRatio)}>
+                    {parseFloat(basicInfo?.compareToPreviousClosePrice || '0') > 0 ? '+' : ''}{basicInfo?.compareToPreviousClosePrice} ({basicInfo?.fluctuationsRatio}%)
+                  </div>
+                </div>
+                
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span>시가총액</span>
+                    <span style={{ color: 'var(--text-primary)' }}>{basicInfo?.marketValue}억</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </Panel>
 
@@ -49,20 +89,20 @@ export default function StockDetailPage() {
         <Panel defaultSize={55} minSize={30} className={styles.panel}>
           <div className={styles.panelHeader}>상세 차트</div>
           <div className={styles.panelContent} style={{ padding: 0 }}>
-            {/* 상단 컨트롤 바 */}
             <div style={{ display: 'flex', gap: 16, padding: '8px 12px', borderBottom: '1px solid var(--border-color)' }}>
               <select style={{ background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 4 }}>
-                <option>1M</option>
-                <option>3M</option>
-                <option>1Y</option>
-              </select>
-              <select style={{ background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 4 }}>
-                <option>1D</option>
-                <option>1W</option>
+                <option>일봉</option>
+                <option>주봉</option>
+                <option>월봉</option>
               </select>
             </div>
-            <div style={{ height: 'calc(100% - 40px)' }}>
-              <CandleChart data={dummyChartData} />
+            <div style={{ height: 'calc(100% - 40px)', position: 'relative' }}>
+              {loading && (
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>
+                  차트 불러오는 중...
+                </div>
+              )}
+              {!loading && chartData.length > 0 && <CandleChart data={chartData} />}
             </div>
           </div>
         </Panel>
@@ -72,7 +112,7 @@ export default function StockDetailPage() {
         <Panel defaultSize={25} minSize={20} className={styles.panel}>
           <div className={styles.panelHeader}>수급 / 공시 / 리포트</div>
           <div className={styles.panelContent}>
-            <div className={styles.placeholder}>우측 패널 콘텐츠</div>
+            <div className={styles.placeholder}>API 연동 예정</div>
           </div>
         </Panel>
       </PanelGroup>
