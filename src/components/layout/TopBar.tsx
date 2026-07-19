@@ -5,7 +5,7 @@ export default function TopBar() {
   return (
     <div className={styles.topBar}>
       <div className={styles.brand}>
-        K-Terminal
+        Tidal
       </div>
       
       <div className={styles.searchContainer}>

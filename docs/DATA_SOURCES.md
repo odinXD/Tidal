@@ -1,6 +1,6 @@
 # 데이터 소스 및 정책 안내
 
-K-Terminal은 다양한 무료 데이터 소스를 통합하여 제공합니다.
+Tidal은 다양한 무료 데이터 소스를 통합하여 제공합니다.
 
 ## 1. 한국 주식 시세 및 차트
 * **소스**: 네이버 금융 내부 API (`api.stock.naver.com`, `api.finance.naver.com`)

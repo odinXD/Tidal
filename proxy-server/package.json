@@ -1,5 +1,5 @@
 {
-  "name": "k-terminal-proxy",
+  "name": "tidal-proxy",
   "version": "1.0.0",
   "description": "CORS Proxy for Naver Finance API",
   "main": "index.js",
