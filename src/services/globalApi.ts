@@ -8,15 +8,17 @@ const FRANKFURTER_BASE = 'https://api.frankfurter.app';
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
 
 export const globalApi = {
-  // 1. 최신 환율 (기준: USD -> KRW, EUR, JPY)
-  getLatestRates: async () => {
+  // 최신 환율 정보 조회 (Frankfurter API proxy)
+  getLatestRates: async (): Promise<any> => {
     try {
-      const response = await axios.get(`${FRANKFURTER_BASE}/latest`, {
-        params: { from: 'USD', to: 'KRW,EUR,JPY' }
-      });
+      const isProd = import.meta.env.PROD;
+      const PROXY_URL = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+      const API_BASE = isProd ? '/api' : `${PROXY_URL}/api`;
+      
+      const response = await axios.get(`${API_BASE}/exchange?from=USD&to=KRW,EUR,JPY`);
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch latest exchange rates', error);
+      console.error('Failed to fetch exchange rates', error);
       throw error;
     }
   },

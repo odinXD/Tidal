@@ -4,7 +4,26 @@ import iconv from 'iconv-lite';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const { code, startTime, endTime, timeframe } = req.query;
+    const { code, timeframe = 'day' } = req.query;
+    let { startTime, endTime } = req.query;
+    
+    // 기본값 설정: 최근 1년 데이터
+    if (!startTime || !endTime) {
+      const end = new Date();
+      const start = new Date();
+      start.setFullYear(start.getFullYear() - 1);
+      
+      const formatDate = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}${m}${day}`;
+      };
+      
+      if (!startTime) startTime = formatDate(start);
+      if (!endTime) endTime = formatDate(end);
+    }
+
     const url = `https://api.finance.naver.com/siseJson.naver?symbol=${code}&requestType=1&startTime=${startTime}&endTime=${endTime}&timeframe=${timeframe}`;
     
     const response = await axios.get(url, { responseType: 'arraybuffer' });
