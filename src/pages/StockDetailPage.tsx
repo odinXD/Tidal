@@ -99,9 +99,21 @@ export default function StockDetailPage() {
                   </div>
                   
                   <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid var(--border-color)' }}>
                       <span>시가총액</span>
-                      <span style={{ color: 'var(--text-primary)' }}>{basicInfo?.marketValue}억</span>
+                      <span style={{ color: 'var(--text-primary)' }}>{basicInfo?.marketValue || 'N/A'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid var(--border-color)' }}>
+                      <span>PER / EPS</span>
+                      <span style={{ color: 'var(--text-primary)' }}>{basicInfo?.per || 'N/A'} / {basicInfo?.eps || 'N/A'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid var(--border-color)' }}>
+                      <span>PBR / BPS</span>
+                      <span style={{ color: 'var(--text-primary)' }}>{basicInfo?.pbr || 'N/A'} / {basicInfo?.bps || 'N/A'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span>배당수익률</span>
+                      <span style={{ color: 'var(--text-primary)' }}>{basicInfo?.dividendYield || 'N/A'}</span>
                     </div>
                   </div>
                 </>
@@ -117,28 +129,72 @@ export default function StockDetailPage() {
         <PanelResizeHandle className={styles.resizeHandle} />
 
         <Panel defaultSize={55} minSize={30} className={styles.panel}>
-          <div className={styles.panelHeader}>상세 차트</div>
-          <div className={styles.panelContent} style={{ padding: 0 }}>
-            <div style={{ display: 'flex', gap: 16, padding: '8px 12px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-base)' }}>
-              <select 
-                value={timeframe}
-                onChange={(e) => setTimeframe(e.target.value as 'day'|'week'|'month')}
-                style={{ background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '4px 8px' }}
-              >
-                <option value="day">일봉</option>
-                <option value="week">주봉</option>
-                <option value="month">월봉</option>
-              </select>
-            </div>
-            <div style={{ height: 'calc(100% - 40px)', position: 'relative' }}>
-              {(loading || chartLoading) && (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>
-                  차트 불러오는 중...
+          <PanelGroup orientation="vertical">
+            <Panel defaultSize={70} minSize={40} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className={styles.panelHeader}>상세 차트</div>
+              <div className={styles.panelContent} style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', gap: 16, padding: '8px 12px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-base)' }}>
+                  <select 
+                    value={timeframe}
+                    onChange={(e) => setTimeframe(e.target.value as 'day'|'week'|'month')}
+                    style={{ background: 'var(--bg-panel)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '4px 8px' }}
+                  >
+                    <option value="day">일봉</option>
+                    <option value="week">주봉</option>
+                    <option value="month">월봉</option>
+                  </select>
                 </div>
-              )}
-              {!(loading || chartLoading) && chartData.length > 0 && <CandleChart data={chartData} />}
-            </div>
-          </div>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  {(loading || chartLoading) && (
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>
+                      차트 불러오는 중...
+                    </div>
+                  )}
+                  {!(loading || chartLoading) && chartData.length > 0 && <CandleChart data={chartData} />}
+                </div>
+              </div>
+            </Panel>
+            
+            <PanelResizeHandle className={styles.resizeHandle} />
+            
+            <Panel defaultSize={30} minSize={20} style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-panel)' }}>
+              <div className={styles.panelHeader}>수급 동향 (외국인/기관)</div>
+              <div className={styles.panelContent} style={{ padding: '0 12px', overflowY: 'auto' }}>
+                {basicInfo?.dealTrends && basicInfo.dealTrends.length > 0 ? (
+                  <table style={{ width: '100%', fontSize: 12, textAlign: 'right', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-color)' }}>
+                        <th style={{ padding: '8px 4px', textAlign: 'left' }}>일자</th>
+                        <th style={{ padding: '8px 4px' }}>종가</th>
+                        <th style={{ padding: '8px 4px' }}>전일비</th>
+                        <th style={{ padding: '8px 4px' }}>외국인</th>
+                        <th style={{ padding: '8px 4px' }}>기관</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {basicInfo.dealTrends.map((t: any, i: number) => (
+                        <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <td style={{ padding: '8px 4px', textAlign: 'left', color: 'var(--text-muted)' }}>{t.bizdate}</td>
+                          <td style={{ padding: '8px 4px' }}>{t.closePrice}</td>
+                          <td className={getChangeClass(t.compareToPreviousClosePrice)} style={{ padding: '8px 4px' }}>
+                            {t.compareToPreviousPrice?.name === 'RISING' ? '+' : ''}{t.compareToPreviousClosePrice}
+                          </td>
+                          <td style={{ padding: '8px 4px', color: parseFloat(t.foreignerPureBuyQuant.replace(/,/g, '')) > 0 ? 'var(--color-up)' : 'var(--color-down)' }}>
+                            {t.foreignerPureBuyQuant}
+                          </td>
+                          <td style={{ padding: '8px 4px', color: parseFloat(t.organPureBuyQuant.replace(/,/g, '')) > 0 ? 'var(--color-up)' : 'var(--color-down)' }}>
+                            {t.organPureBuyQuant}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div style={{ color: 'var(--text-muted)', padding: '12px' }}>수급 정보가 없습니다.</div>
+                )}
+              </div>
+            </Panel>
+          </PanelGroup>
         </Panel>
 
         <PanelResizeHandle className={styles.resizeHandle} />

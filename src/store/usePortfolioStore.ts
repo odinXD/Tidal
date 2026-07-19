@@ -17,11 +17,7 @@ interface PortfolioState {
 export const usePortfolioStore = create<PortfolioState>()(
   persist(
     (set) => ({
-      items: [
-        { code: '005930', name: '삼성전자', averagePrice: 70000, quantity: 100 },
-        { code: '000660', name: 'SK하이닉스', averagePrice: 150000, quantity: 50 },
-        { code: '035420', name: 'NAVER', averagePrice: 200000, quantity: 30 },
-      ],
+      items: [],
       addItem: (item) =>
         set((state) => {
           const existing = state.items.find((i) => i.code === item.code);

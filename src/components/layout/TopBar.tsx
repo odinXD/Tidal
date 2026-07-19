@@ -1,6 +1,6 @@
-import { Search, Settings, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Activity, Globe, PieChart, Menu, LogOut, MessageSquare, LayoutTemplate, Briefcase } from 'lucide-react';
 import { useMarketStore } from '../../store/useMarketStore';
 import { usePriceTick } from '../../hooks/usePriceTick';
 import { searchStocks } from '../../utils/stockDictionary';
@@ -11,19 +11,23 @@ export default function TopBar() {
   const navigate = useNavigate();
   const { indices, exchangeRates } = useMarketStore();
   
+  // KOSPI 파싱 에러 수정 (콤마 제거)
+  const kospiPrice = indices.kospi ? parseFloat(indices.kospi.closePrice.replace(/,/g, '')) : 0;
+  const kosdaqPrice = indices.kosdaq ? parseFloat(indices.kosdaq.closePrice.replace(/,/g, '')) : 0;
+  
   const kospiTick = usePriceTick(indices.kospi?.closePrice);
   const kosdaqTick = usePriceTick(indices.kosdaq?.closePrice);
   const usdTick = usePriceTick(exchangeRates.usdKrw?.toString());
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<StockItem[]>([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -33,32 +37,22 @@ export default function TopBar() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    if (query.trim()) {
+    if (query.length > 0) {
       setSearchResults(searchStocks(query));
-      setIsDropdownOpen(true);
+      setIsSearchOpen(true);
     } else {
       setSearchResults([]);
-      setIsDropdownOpen(false);
+      setIsSearchOpen(false);
     }
   };
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      if (searchQuery.match(/^\d{6}$/)) {
-        handleNavigateToStock(searchQuery);
-      } else if (searchResults.length > 0) {
-        handleNavigateToStock(searchResults[0].code);
-      }
-    }
-  };
-
-  const handleNavigateToStock = (code: string) => {
-    setIsDropdownOpen(false);
+  const handleSelectStock = (code: string) => {
     setSearchQuery('');
+    setIsSearchOpen(false);
     navigate(`/stock/${code}`);
   };
 
-  const formatIndex = (val?: string | null) => val ? parseFloat(val).toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00';
+  const formatIndex = (_val?: string | null, numericVal?: number) => numericVal ? numericVal.toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00';
   const formatChange = (val?: string | null) => {
     if (!val) return '0.00%';
     const num = parseFloat(val);
@@ -68,78 +62,75 @@ export default function TopBar() {
   const getChangeClass = (val?: string | null) => {
     if (!val) return '';
     const num = parseFloat(val);
-    if (num > 0) return 'text-up';
-    if (num < 0) return 'text-down';
+    if (num > 0) return styles.textUp;
+    if (num < 0) return styles.textDown;
     return '';
   };
 
   return (
-    <div className={styles.topBar}>
-      <div className={styles.brand} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-        Tidal
+    <header className={styles.topbar}>
+      <div className={styles.logo} onClick={() => navigate('/')}>
+        <Activity size={24} color="var(--color-accent)" />
+        <span>Tidal</span>
       </div>
-      
-      <div className={styles.searchContainer} ref={dropdownRef} style={{ position: 'relative' }}>
-        <Search size={16} className={styles.searchIcon} />
-        <input 
-          type="text" 
-          placeholder="종목명, 티커 입력..." 
-          className={styles.searchInput}
-          value={searchQuery}
-          onChange={handleSearchChange}
-          onKeyDown={handleSearchKeyDown}
-          onFocus={() => { if (searchQuery) setIsDropdownOpen(true); }}
-        />
-        <div className={styles.searchShortcut}>/</div>
-        
-        {isDropdownOpen && searchQuery && (
-          <div className={styles.searchDropdown}>
-            {searchResults.length > 0 ? (
-              searchResults.map(stock => (
-                <div 
-                  key={stock.code} 
-                  className={styles.dropdownItem}
-                  onClick={() => handleNavigateToStock(stock.code)}
-                >
-                  <span className={styles.stockName}>{stock.name}</span>
-                  <span className={styles.stockCode}>{stock.code}</span>
-                </div>
-              ))
-            ) : (
-              <div className={styles.dropdownItem} style={{ justifyContent: 'center', opacity: 0.5 }}>
-                {searchQuery.match(/^\d{6}$/) ? `'Enter'를 눌러 종목 이동` : '결과가 없습니다'}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+
+      <nav className={styles.nav}>
+        <button onClick={() => navigate('/')} className={styles.navBtn}><LayoutTemplate size={16}/> Market</button>
+        <button onClick={() => navigate('/portfolio')} className={styles.navBtn}><Briefcase size={16}/> Portfolio</button>
+        <button onClick={() => navigate('/theme')} className={styles.navBtn}><PieChart size={16}/> Themes</button>
+        <button onClick={() => navigate('/macro')} className={styles.navBtn}><Globe size={16}/> Macro</button>
+        <button onClick={() => navigate('/news')} className={styles.navBtn}><MessageSquare size={16}/> News</button>
+      </nav>
       
       <div className={styles.indexStrip}>
         <div className={styles.indexItem}>
           <span className={styles.indexName}>KOSPI</span>
-          <span className={`${styles.indexValue} ${kospiTick}`}>{formatIndex(indices.kospi?.closePrice)}</span>
+          <span className={`${styles.indexValue} ${kospiTick}`}>{formatIndex(indices.kospi?.closePrice, kospiPrice)}</span>
           <span className={`${styles.indexChange} ${getChangeClass(indices.kospi?.fluctuationsRatio)}`}>{formatChange(indices.kospi?.fluctuationsRatio)}</span>
         </div>
         <div className={styles.indexItem}>
           <span className={styles.indexName}>KOSDAQ</span>
-          <span className={`${styles.indexValue} ${kosdaqTick}`}>{formatIndex(indices.kosdaq?.closePrice)}</span>
+          <span className={`${styles.indexValue} ${kosdaqTick}`}>{formatIndex(indices.kosdaq?.closePrice, kosdaqPrice)}</span>
           <span className={`${styles.indexChange} ${getChangeClass(indices.kosdaq?.fluctuationsRatio)}`}>{formatChange(indices.kosdaq?.fluctuationsRatio)}</span>
         </div>
         <div className={styles.indexItem}>
           <span className={styles.indexName}>USD/KRW</span>
-          <span className={`${styles.indexValue} ${usdTick}`}>{exchangeRates.usdKrw ? exchangeRates.usdKrw.toLocaleString() : '1,380.50'}</span>
-          <span className={`${styles.indexChange} text-up`}>+2.0</span>
+          <span className={`${styles.indexValue} ${usdTick}`}>{exchangeRates.usdKrw ? exchangeRates.usdKrw.toLocaleString() : '...'}</span>
         </div>
       </div>
 
-      <div className={styles.actions}>
-        <button className={styles.iconButton} title="설정" onClick={() => navigate('/settings')}>
-          <Settings size={18} />
-        </button>
-        <button className={styles.iconButton} title="로그인/프로필">
-          <User size={18} />
-        </button>
+      <div className={styles.searchContainer} ref={searchRef}>
+        <div className={styles.searchBox}>
+          <Search size={16} className={styles.searchIcon} />
+          <input 
+            type="text" 
+            placeholder="Search stock..." 
+            className={styles.searchInput}
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onFocus={() => { if (searchQuery) setIsSearchOpen(true); }}
+          />
+        </div>
+        {isSearchOpen && searchResults.length > 0 && (
+          <div className={styles.dropdown}>
+            {searchResults.map((stock) => (
+              <div 
+                key={stock.code} 
+                className={styles.dropdownItem}
+                onClick={() => handleSelectStock(stock.code)}
+              >
+                <span className={styles.dropdownName}>{stock.name}</span>
+                <span className={styles.dropdownCode}>{stock.code}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+
+      <div className={styles.actions}>
+        <button className={styles.iconBtn}><Menu size={20} /></button>
+        <button className={styles.iconBtn}><LogOut size={20} /></button>
+      </div>
+    </header>
   );
 }

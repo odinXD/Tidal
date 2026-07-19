@@ -77,7 +77,7 @@ export default function MarketPage() {
                 <div className={styles.panelHeader} style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>KOSPI 지수</span>
                   <span className={getChangeClass(indices.kospi?.fluctuationsRatio)}>
-                    {indices.kospi?.closePrice} ({indices.kospi?.fluctuationsRatio}%)
+                    {indices.kospi ? parseFloat(indices.kospi.closePrice.replace(/,/g, '')).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'} ({indices.kospi?.fluctuationsRatio}%)
                   </span>
                 </div>
                 <div className={styles.panelContent} style={{ flex: 1, padding: 0, position: 'relative' }}>
@@ -99,7 +99,7 @@ export default function MarketPage() {
                 <div className={styles.panelHeader} style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>KOSDAQ 지수</span>
                   <span className={getChangeClass(indices.kosdaq?.fluctuationsRatio)}>
-                    {indices.kosdaq?.closePrice} ({indices.kosdaq?.fluctuationsRatio}%)
+                    {indices.kosdaq ? parseFloat(indices.kosdaq.closePrice.replace(/,/g, '')).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'} ({indices.kosdaq?.fluctuationsRatio}%)
                   </span>
                 </div>
                 <div className={styles.panelContent} style={{ flex: 1, padding: 0, position: 'relative' }}>

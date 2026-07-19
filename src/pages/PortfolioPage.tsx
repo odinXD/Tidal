@@ -118,13 +118,15 @@ export default function PortfolioPage() {
       <PanelGroup orientation="horizontal">
         <Panel defaultSize={35} minSize={25} className={styles.panel}>
           <div className={styles.panelHeader}>내 자산 비중</div>
-          <div className={styles.panelContent} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={styles.panelContent} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
             {loading ? (
               <div style={{ color: 'var(--text-muted)' }}>평가액 계산 중...</div>
             ) : liveData.length === 0 ? (
               <div style={{ color: 'var(--text-muted)' }}>보유 주식이 없습니다.</div>
             ) : (
-              <Chart options={pieChartOptions} series={pieChartSeries} type="donut" width="100%" height={300} />
+              <div style={{ width: '100%', maxWidth: '400px', display: 'flex', justifyContent: 'center' }}>
+                <Chart options={pieChartOptions} series={pieChartSeries} type="donut" width="350" height="350" />
+              </div>
             )}
           </div>
         </Panel>

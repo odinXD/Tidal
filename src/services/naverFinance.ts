@@ -12,7 +12,14 @@ export interface StockBasicInfo {
   compareToPreviousClosePrice: string;
   fluctuationsRatio: string;
   marketValue?: string;
-  itemCode: string;
+  // 추가 재무 정보 (integration endpoint 기준)
+  per?: string;
+  eps?: string;
+  pbr?: string;
+  bps?: string;
+  dividendYield?: string;
+  // 외국인/기관 수급
+  dealTrends?: any[];
 }
 
 export interface ChartData {
@@ -31,13 +38,34 @@ export interface IndexInfo {
 }
 
 export const naverFinanceApi = {
-  // 1. 종목 기본 정보 조회
+  // 1. 종목 기본 및 재무/수급 정보 가져오기 (integration 연동)
   getStockBasic: async (code: string): Promise<StockBasicInfo> => {
     try {
       const response = await axios.get(`${API_BASE}/stock/${code}`);
-      return response.data;
+      const data = response.data;
+      
+      const basic = data.basicInfo || data;
+      const keyIndicators = data.keyIndicators || [];
+      const dealTrends = data.dealTrendInfos || [];
+      
+      const getValue = (k: string) => keyIndicators.find((i: any) => i.code === k)?.value;
+
+      return {
+        code: basic.itemCode,
+        stockName: basic.stockName,
+        closePrice: basic.closePrice,
+        compareToPreviousClosePrice: basic.compareToPreviousClosePrice,
+        fluctuationsRatio: basic.fluctuationsRatio,
+        marketValue: getValue('marketValue') || basic.marketValue,
+        per: getValue('per'),
+        eps: getValue('eps'),
+        pbr: getValue('pbr'),
+        bps: getValue('bps'),
+        dividendYield: getValue('dividendYieldRatio'),
+        dealTrends: dealTrends
+      };
     } catch (error) {
-      console.error(`Failed to fetch basic info for ${code}`, error);
+      console.error(`Failed to fetch stock basic info for ${code}`, error);
       throw error;
     }
   },
@@ -106,6 +134,39 @@ export const naverFinanceApi = {
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch stock news for ${code}`, error);
+      throw error;
+    }
+  },
+
+  // 8. 테마 리스트 가져오기
+  getThemes: async (): Promise<{name: string, ratio: string, desc: string}[]> => {
+    try {
+      const response = await axios.get(`${API_BASE}/themes`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch themes`, error);
+      throw error;
+    }
+  },
+
+  // 9. 글로벌 뉴스(전체 시장 뉴스) 가져오기
+  getGlobalNews: async (page = 1, category = 'mainnews'): Promise<any[]> => {
+    try {
+      const response = await axios.get(`${API_BASE}/news?page=${page}&category=${category}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch global news`, error);
+      throw error;
+    }
+  },
+
+  // 10. 공시 목록 가져오기
+  getDisclosures: async (page = 1): Promise<any[]> => {
+    try {
+      const response = await axios.get(`${API_BASE}/disclosure?page=${page}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch disclosures`, error);
       throw error;
     }
   }

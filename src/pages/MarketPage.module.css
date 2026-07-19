@@ -54,3 +54,50 @@
   border: 1px dashed var(--border-color);
   border-radius: 4px;
 }
+
+.stockList {
+  display: flex;
+  flex-direction: column;
+}
+
+.stockItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.stockItem:hover {
+  background-color: var(--bg-panel-hover);
+}
+
+.stockInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stockRank {
+  font-weight: bold;
+  color: var(--text-secondary);
+  width: 20px;
+}
+
+.stockName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stockPriceInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.stockChange {
+  font-size: 12px;
+}
