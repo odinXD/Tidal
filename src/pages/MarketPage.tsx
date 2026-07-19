@@ -47,7 +47,7 @@ export default function MarketPage() {
   };
 
   const renderStockList = (list: StockBasicInfo[]) => {
-    return list.map((stock, i) => {
+    return (list || []).map((stock, i) => {
       const isUp = parseFloat(stock.compareToPreviousClosePrice || '0') > 0;
       return (
         <div key={i} className={styles.stockItem} onClick={() => navigate(`/stock/${stock.code}`)}>
@@ -83,7 +83,7 @@ export default function MarketPage() {
                 <div className={styles.panelContent} style={{ flex: 1, padding: 0, position: 'relative' }}>
                   {loading ? (
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>로딩중...</div>
-                  ) : kospiChart.length > 0 && (
+                  ) : Array.isArray(kospiChart) && kospiChart.length > 0 && (
                     <div style={{ position: 'absolute', inset: 0 }}>
                       <CandleChart data={kospiChart} />
                     </div>
@@ -105,7 +105,7 @@ export default function MarketPage() {
                 <div className={styles.panelContent} style={{ flex: 1, padding: 0, position: 'relative' }}>
                   {loading ? (
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>로딩중...</div>
-                  ) : kosdaqChart.length > 0 && (
+                  ) : Array.isArray(kosdaqChart) && kosdaqChart.length > 0 && (
                     <div style={{ position: 'absolute', inset: 0 }}>
                       <CandleChart data={kosdaqChart} />
                     </div>

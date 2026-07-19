@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Activity, Globe, PieChart, Menu, LogOut, MessageSquare, LayoutTemplate, Briefcase } from 'lucide-react';
+import { Search, Activity } from 'lucide-react';
 import { useMarketStore } from '../../store/useMarketStore';
 import { usePriceTick } from '../../hooks/usePriceTick';
 import { searchStocks } from '../../utils/stockDictionary';
@@ -11,7 +11,6 @@ export default function TopBar() {
   const navigate = useNavigate();
   const { indices, exchangeRates } = useMarketStore();
   
-  // KOSPI 파싱 에러 수정 (콤마 제거)
   const kospiPrice = indices.kospi ? parseFloat(indices.kospi.closePrice.replace(/,/g, '')) : 0;
   const kosdaqPrice = indices.kosdaq ? parseFloat(indices.kosdaq.closePrice.replace(/,/g, '')) : 0;
   
@@ -68,20 +67,61 @@ export default function TopBar() {
   };
 
   return (
-    <header className={styles.topbar}>
-      <div className={styles.logo} onClick={() => navigate('/')}>
-        <Activity size={24} color="var(--color-accent)" />
+    <header className={styles.topBar}>
+      <div className={styles.brand} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate('/')}>
+        <Activity size={20} color="var(--color-accent)" />
         <span>Tidal</span>
       </div>
 
-      <nav className={styles.nav}>
-        <button onClick={() => navigate('/')} className={styles.navBtn}><LayoutTemplate size={16}/> Market</button>
-        <button onClick={() => navigate('/portfolio')} className={styles.navBtn}><Briefcase size={16}/> Portfolio</button>
-        <button onClick={() => navigate('/theme')} className={styles.navBtn}><PieChart size={16}/> Themes</button>
-        <button onClick={() => navigate('/macro')} className={styles.navBtn}><Globe size={16}/> Macro</button>
-        <button onClick={() => navigate('/news')} className={styles.navBtn}><MessageSquare size={16}/> News</button>
-      </nav>
-      
+      <div className={styles.searchContainer} ref={searchRef}>
+        <Search size={14} className={styles.searchIcon} />
+        <input 
+          type="text" 
+          placeholder="종목명 또는 코드 검색 (예: 삼성전자, 005930)" 
+          className={styles.searchInput}
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onFocus={() => { if(searchQuery.length > 0) setIsSearchOpen(true); }}
+        />
+        <div className={styles.searchShortcut}>/</div>
+
+        {isSearchOpen && searchResults.length > 0 && (
+          <div style={{
+            position: 'absolute',
+            top: '40px',
+            left: 0,
+            right: 0,
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '4px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            maxHeight: '400px',
+            overflowY: 'auto',
+            zIndex: 9999
+          }}>
+            {searchResults.map((stock) => (
+              <div 
+                key={stock.code}
+                onClick={() => handleSelectStock(stock.code)}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '10px 12px',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid var(--border-color)',
+                  fontSize: '13px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-panel-hover)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{stock.name}</span>
+                <span style={{ color: 'var(--text-muted)' }}>{stock.code}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className={styles.indexStrip}>
         <div className={styles.indexItem}>
           <span className={styles.indexName}>KOSPI</span>
@@ -97,39 +137,6 @@ export default function TopBar() {
           <span className={styles.indexName}>USD/KRW</span>
           <span className={`${styles.indexValue} ${usdTick}`}>{exchangeRates.usdKrw ? exchangeRates.usdKrw.toLocaleString() : '...'}</span>
         </div>
-      </div>
-
-      <div className={styles.searchContainer} ref={searchRef}>
-        <div className={styles.searchBox}>
-          <Search size={16} className={styles.searchIcon} />
-          <input 
-            type="text" 
-            placeholder="Search stock..." 
-            className={styles.searchInput}
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onFocus={() => { if (searchQuery) setIsSearchOpen(true); }}
-          />
-        </div>
-        {isSearchOpen && searchResults.length > 0 && (
-          <div className={styles.dropdown}>
-            {searchResults.map((stock) => (
-              <div 
-                key={stock.code} 
-                className={styles.dropdownItem}
-                onClick={() => handleSelectStock(stock.code)}
-              >
-                <span className={styles.dropdownName}>{stock.name}</span>
-                <span className={styles.dropdownCode}>{stock.code}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.actions}>
-        <button className={styles.iconBtn}><Menu size={20} /></button>
-        <button className={styles.iconBtn}><LogOut size={20} /></button>
       </div>
     </header>
   );

@@ -13,9 +13,9 @@ export const globalApi = {
     try {
       const isProd = import.meta.env.PROD;
       const PROXY_URL = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
-      const API_BASE = isProd ? '/api' : `${PROXY_URL}/api`;
+      const API_BASE = isProd ? '/api/global' : `${PROXY_URL}/api/global`;
       
-      const response = await axios.get(`${API_BASE}/exchange?from=USD&to=KRW,EUR,JPY`);
+      const response = await axios.get(`${API_BASE}/rates?from=USD&to=KRW,EUR,JPY`);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch exchange rates', error);
@@ -40,8 +40,12 @@ export const globalApi = {
   // 2. 환율 차트 히스토리
   getRatesHistory: async (startDate: string, endDate: string) => {
     try {
-      const response = await axios.get(`${FRANKFURTER_BASE}/${startDate}..${endDate}`, {
-        params: { from: 'USD', to: 'KRW' }
+      const isProd = import.meta.env.PROD;
+      const PROXY_URL = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+      const API_BASE = isProd ? '/api/global' : `${PROXY_URL}/api/global`;
+      
+      const response = await axios.get(`${API_BASE}/history`, {
+        params: { startDate, endDate, from: 'USD', to: 'KRW' }
       });
       return response.data;
     } catch (error) {
